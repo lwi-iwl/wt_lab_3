@@ -3,6 +3,7 @@ package by.tc.task01.server.service.impl;
 import by.tc.task01.server.dao.ApplianceDAO;
 import by.tc.task01.server.dao.DAOFactory;
 import by.tc.task01.server.entity.ClientInfo;
+import by.tc.task01.server.entity.Info;
 import by.tc.task01.server.entity.StudentInfo;
 import by.tc.task01.server.entity.criteria.Criteria;
 import by.tc.task01.server.entity.criteria.SearchCriteria;
@@ -11,7 +12,6 @@ import org.xml.sax.SAXException;
 
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.transform.TransformerException;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -19,10 +19,10 @@ import java.util.List;
 public class ServerServiceImpl implements ServerService {
 
 
-	public List<StudentInfo> getAll(Criteria criteria){
+	public List<Info> getAll(){
 		DAOFactory factory = DAOFactory.getInstance();
 		ApplianceDAO applianceDAO = factory.getApplianceDAO();
-		List<StudentInfo> appliances = applianceDAO.getAll(criteria, "src/main/resources/students_db.xml");
+		List<Info> appliances = applianceDAO.getAll("src/main/resources/students_db.xml", "Student");
 		return appliances;
 	}
 
@@ -36,10 +36,22 @@ public class ServerServiceImpl implements ServerService {
 		return applianceDAO.add(parameters, "src/main/resources/client_db.xml", "Client");
 	}
 
-	public ClientInfo getClient(Criteria criteria) {
+	public Info getClient(Criteria criteria) {
 		DAOFactory factory = DAOFactory.getInstance();
 		ApplianceDAO applianceDAO = factory.getApplianceDAO();
-		List<ClientInfo> clientInfoList = applianceDAO.get(criteria, "src/main/resources/client_db.xml");
+		List<Info> clientInfoList = applianceDAO.get(criteria, "src/main/resources/client_db.xml", "Client");
+		if (!clientInfoList.isEmpty()) {
+			return clientInfoList.get(0);
+		}
+		else {
+			return null;
+		}
+	}
+
+	public Info getStudent(Criteria criteria){
+		DAOFactory factory = DAOFactory.getInstance();
+		ApplianceDAO applianceDAO = factory.getApplianceDAO();
+		List<Info> clientInfoList = applianceDAO.get(criteria, "src/main/resources/students_db.xml", "Student");
 		if (!clientInfoList.isEmpty()) {
 			return clientInfoList.get(0);
 		}

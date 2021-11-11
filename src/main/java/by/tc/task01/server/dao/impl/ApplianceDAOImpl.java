@@ -1,10 +1,7 @@
 package by.tc.task01.server.dao.impl;
 
 import by.tc.task01.server.dao.ApplianceDAO;
-import by.tc.task01.server.entity.ClientFactory;
-import by.tc.task01.server.entity.ClientInfo;
-import by.tc.task01.server.entity.StudentFactory;
-import by.tc.task01.server.entity.StudentInfo;
+import by.tc.task01.server.entity.*;
 import by.tc.task01.server.entity.criteria.Criteria;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -27,15 +24,14 @@ import java.util.Set;
 
 public class ApplianceDAOImpl implements ApplianceDAO{
 
-	StudentFactory studentFactory = new StudentFactory();
-	ClientFactory clientFactory = new ClientFactory();
+	Factory infoFactory = new Factory();
 	private static String getTagValue(String tag, Element element) {
 		NodeList nodeList = element.getElementsByTagName(tag).item(0).getChildNodes();
 		Node node = (Node) nodeList.item(0);
 		return node.getNodeValue();
 	}
 
-	public List<StudentInfo> getAll(Criteria criteria, String path){
+	public List<Info> getAll(String path, String type){
 		File xmlFile = new File("src/main/resources/students_db.xml");
 		DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
 		DocumentBuilder builder;
@@ -44,19 +40,18 @@ public class ApplianceDAOImpl implements ApplianceDAO{
 			Document document = builder.parse(xmlFile);
 			document.getDocumentElement().normalize();
 			Node node = document.getDocumentElement();
-			List<StudentInfo> students = new ArrayList<StudentInfo>();
+			List<Info> students = new ArrayList<Info>();
 			node = node.getChildNodes().item(1);
 			while (node!=null){
 				if (!node.getNodeName().equals("#text")) {
 					NodeList nodeList = node.getChildNodes();
 					ArrayList<String> parameters = new ArrayList<String>();
-					parameters.add(node.getNodeName());
 					for (int i = 0; i < nodeList.getLength(); i++) {
 						if (!nodeList.item(i).getNodeName().equals("#text")) {
 							parameters.add(getTagValue(nodeList.item(i).getNodeName(),(Element)node));
 						}
 					}
-					students.add(studentFactory.getStudent(parameters));
+					students.add(infoFactory.getInfo(parameters, type));
 				}
 				node = node.getNextSibling();
 			}
@@ -128,7 +123,7 @@ public class ApplianceDAOImpl implements ApplianceDAO{
 		return false;
 	}
 
-	public List<ClientInfo> get(Criteria criteria, String path) {
+	public List<Info> get(Criteria criteria, String path, String type) {
 		File xmlFile = new File(path);
 		DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
 		DocumentBuilder builder;
@@ -137,7 +132,7 @@ public class ApplianceDAOImpl implements ApplianceDAO{
 			Document document = builder.parse(xmlFile);
 			document.getDocumentElement().normalize();
 			Node node = document.getDocumentElement();
-			List<ClientInfo> clients = new ArrayList<ClientInfo>();
+			List<Info> infoList = new ArrayList<Info>();
 			node = node.getChildNodes().item(1);
 			while (node!=null){
 				if (!node.getNodeName().equals("#text")) {
@@ -151,22 +146,27 @@ public class ApplianceDAOImpl implements ApplianceDAO{
 						}
 					}
 					Set<String> applianceProperties = criteria.getCriteria().keySet();
-					boolean isCriteria = true;
-					for (String property : applianceProperties) {
-						int index = parametersInfo.indexOf(property);
-						System.out.println(criteria.getCriteria().get(property).toString());
-						System.out.println(parameters.get(index));
-						if ((index != -1) && (!criteria.getCriteria().get(property).toString().equals(parameters.get(index)))) {
-							isCriteria = false;
+					if (!applianceProperties.isEmpty()) {
+						boolean isCriteria = true;
+						for (String property : applianceProperties) {
+							int index = parametersInfo.indexOf(property);
+							System.out.println(criteria.getCriteria().get(property).toString());
+							System.out.println(parameters.get(index));
+							if ((index != -1) && (!criteria.getCriteria().get(property).toString().equals(parameters.get(index)))) {
+								isCriteria = false;
+							}
+							if (isCriteria) {
+								infoList.add(infoFactory.getInfo(parameters, type));
+							}
 						}
-						if (isCriteria){
-							clients.add(clientFactory.getClientInfo(parameters));
-						}
+					}
+					else{
+						infoList.add(infoFactory.getInfo(parameters, type));
 					}
 				}
 				node = node.getNextSibling();
 			}
-			return clients;
+			return infoList;
 		} catch (Exception exc) {
 			exc.printStackTrace();
 		}

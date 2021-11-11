@@ -1,6 +1,7 @@
 package by.tc.task01.server.service;
 
 import by.tc.task01.server.entity.ClientInfo;
+import by.tc.task01.server.entity.Info;
 import by.tc.task01.server.entity.StudentInfo;
 import by.tc.task01.server.entity.criteria.SearchCriteria;
 import org.xml.sax.SAXException;
@@ -83,10 +84,10 @@ public class CommandHandler extends Thread{
                 serverLogic.getClientCriteria().add(SearchCriteria.Client.password.getEnumName(), password);
                 ServiceFactory factory = ServiceFactory.getInstance();
                 ServerService service = factory.getApplianceService();
-                ClientInfo clientInfo = service.getClient(serverLogic.getClientCriteria());
+                Info clientInfo = service.getClient(serverLogic.getClientCriteria());
                 if (clientInfo!=null) {
-                    serverLogic.getClientInfo().setName(clientInfo.getName());
-                    serverLogic.getClientInfo().setAllowance(clientInfo.getAllowance());
+                    serverLogic.getClientInfo().setName(clientInfo.getParameters().get(0));
+                    serverLogic.getClientInfo().setAllowance(clientInfo.getParameters().get(1));
                     try {
                         serverLogic.sendData("LOGIN Name: " + serverLogic.getClientInfo().getName() + ", allowance: " + serverLogic.getClientInfo().getAllowance() + "\n");
                     } catch (IOException | InterruptedException e) {
@@ -101,16 +102,51 @@ public class CommandHandler extends Thread{
                     }
                 }
             }
-            case "GET" -> {
+            case "GETALL" -> {
                 if (!serverLogic.getClientInfo().getAllowance().equals("")) {
                     ServiceFactory factory = ServiceFactory.getInstance();
                     ServerService service = factory.getApplianceService();
-                    List<StudentInfo> studentInfoList = service.getAll(serverLogic.getClientCriteria());
+                    List<Info> studentInfoList = service.getAll();
                     String data = "";
                     if (!studentInfoList.isEmpty()) {
-                        for (StudentInfo studentInfo : studentInfoList) {
-                            data = data + "Name: " + studentInfo.getName() + ", AverageScore: " + studentInfo.getAverageScore() + "\n";
+                        for (Info studentInfo : studentInfoList) {
+                            data = data + studentInfo.toString() + "\n";
                         }
+                        try {
+                            serverLogic.sendData(data);
+                        } catch (IOException | InterruptedException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                    else{
+                        try {
+                            serverLogic.sendData("TRY AGAIN\n");
+                        } catch (IOException | InterruptedException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                }
+                else{
+                    try {
+                        serverLogic.sendData("Not enough rights\n");
+                    } catch (IOException | InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                }
+            }
+            case "GET" -> {
+                if (!serverLogic.getClientInfo().getAllowance().equals("")) {
+                    int newIndex = fullCommand.indexOf("]", index);
+                    String name = fullCommand.substring(index+1, newIndex);
+                    ServiceFactory factory = ServiceFactory.getInstance();
+                    ServerService service = factory.getApplianceService();
+                    serverLogic.getStudentCriteria().getCriteria().clear();
+                    serverLogic.getStudentCriteria().add(SearchCriteria.Student.name.getEnumName(), name);
+                    Info studentInfo;
+                    studentInfo = service.getStudent(serverLogic.getStudentCriteria());
+                    String data = "";
+                    if (studentInfo != null) {
+                        data = "Name: " + studentInfo.toString() + "\n";
                         try {
                             serverLogic.sendData(data);
                         } catch (IOException | InterruptedException e) {
@@ -205,6 +241,15 @@ public class CommandHandler extends Thread{
                     } catch (IOException | InterruptedException e) {
                         e.printStackTrace();
                     }
+                }
+            }
+            case "LOGOUT" ->{
+                serverLogic.getClientInfo().setName("");
+                serverLogic.getClientInfo().setAllowance("");
+                try {
+                    serverLogic.sendData("Please, Login\n");
+                } catch (IOException | InterruptedException e) {
+                    e.printStackTrace();
                 }
             }
         };

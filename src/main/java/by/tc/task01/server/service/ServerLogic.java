@@ -13,6 +13,7 @@ import java.util.List;
 
 public class ServerLogic {
     private Criteria criteria;
+    private Criteria studentCriteria;
     private ResultPrinter resultPrinter;
     private ClientInfo clientInfo;
     private Server server;
@@ -21,6 +22,7 @@ public class ServerLogic {
     private List<StudentInfo> students;
     public ServerLogic(){
         criteria = new Criteria(SearchCriteria.Client.getCriteriaName());
+        studentCriteria = new Criteria(SearchCriteria.Student.getCriteriaName());
         threads = new ArrayList<Thread>();
         server = new Server(this);
         Thread consoleReader = new CommandReader(this);
@@ -36,6 +38,7 @@ public class ServerLogic {
         while (!isConnect){
             isConnect = server.makeConnection();
         }
+        sendData("Please, Login\n");
         work = true;
         while (work){
             String command = server.getCommand();
@@ -67,6 +70,7 @@ public class ServerLogic {
 
     public ClientInfo getClientInfo(){return clientInfo; }
 
+    public Criteria getStudentCriteria(){return studentCriteria;}
     public ResultPrinter getResultPrinter() {
         return resultPrinter;
     }
