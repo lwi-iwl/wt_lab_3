@@ -3,12 +3,12 @@ package by.tc.task01.server.entity.criteria;
 import java.util.HashMap;
 import java.util.Map;
 
-public class ClientCriteria {
+public class Criteria {
 
 	private String groupSearchName;
 	private Map<String, Object> criteria = new HashMap<String, Object>();
 
-	public ClientCriteria(String groupSearchName) {
+	public Criteria(String groupSearchName) {
 		this.groupSearchName = groupSearchName;
 	}
 

@@ -1,29 +1,37 @@
 package by.tc.task01.server.service;
 
+import by.tc.task01.server.entity.ClientInfo;
 import by.tc.task01.server.entity.StudentInfo;
-import by.tc.task01.server.entity.criteria.ClientCriteria;
+import by.tc.task01.server.entity.criteria.Criteria;
 import by.tc.task01.server.entity.criteria.SearchCriteria;
 import by.tc.task01.server.serverconsole.CommandReader;
+import by.tc.task01.server.serverconsole.ResultPrinter;
 
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
 public class ServerLogic {
-    private ClientCriteria clientCriteria;
+    private Criteria criteria;
+    private ResultPrinter resultPrinter;
+    private ClientInfo clientInfo;
     private Server server;
     private boolean work;
     private List<Thread> threads;
     private List<StudentInfo> students;
     public ServerLogic(){
-        clientCriteria = new ClientCriteria(SearchCriteria.Client.getCriteriaName());
+        criteria = new Criteria(SearchCriteria.Client.getCriteriaName());
         threads = new ArrayList<Thread>();
         server = new Server(this);
         Thread consoleReader = new CommandReader(this);
         consoleReader.start();
+        resultPrinter = new ResultPrinter();
     }
 
     public void startConnection() throws InterruptedException, IOException {
+        clientInfo = new ClientInfo();
+        clientInfo.setName("");
+        clientInfo.setAllowance("");
         boolean isConnect = false;
         while (!isConnect){
             isConnect = server.makeConnection();
@@ -31,7 +39,7 @@ public class ServerLogic {
         work = true;
         while (work){
             String command = server.getCommand();
-            Thread newCommand = new CommandHandler(command, this, clientCriteria);
+            Thread newCommand = new CommandHandler(command, this);
             newCommand.start();
             if (!command.equals("EXIT")){
                 threads.add(newCommand);
@@ -51,5 +59,15 @@ public class ServerLogic {
 
     public void sendData(String data) throws IOException, InterruptedException {
         server.sendData(data);
+    }
+
+    public Criteria getClientCriteria(){
+        return criteria;
+    }
+
+    public ClientInfo getClientInfo(){return clientInfo; }
+
+    public ResultPrinter getResultPrinter() {
+        return resultPrinter;
     }
 }

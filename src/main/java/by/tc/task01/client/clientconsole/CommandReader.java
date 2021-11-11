@@ -8,6 +8,6 @@ public class CommandReader {
         scan = new Scanner(System.in);
     }
     public String getCommand(){
-        return scan.next();
+        return scan.nextLine();
     }
 }

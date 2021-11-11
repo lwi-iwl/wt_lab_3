@@ -39,16 +39,16 @@ public class Server {
                     clientSocket.close();
                     in.close();
                     out.close();
-                    return false;
                 }
+                return false;
             } catch(Exception e) {
                 server.close();
-                return false;
             }
+            return false;
         } catch (IOException e) {
             System.err.println(e);
-            return false;
         }
+        return false;
     }
 
     public String getCommand() throws IOException, InterruptedException {
@@ -60,8 +60,8 @@ public class Server {
             in.close();
             out.close();
             serverLogic.startConnection();
-            return "";
         }
+        return "";
     }
 
     public void sendData(String data) throws IOException, InterruptedException {

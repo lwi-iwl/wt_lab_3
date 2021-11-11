@@ -24,7 +24,9 @@ public class ClientLogic {
         }
         while (!command.equals("EXIT") && serverEnable){
             command = commandReader.getCommand();
-            client.sendCommand(command+"\n");
+            command = command.replaceAll("\\s+","_");
+            System.out.println(command);
+            client.sendCommand(command.replaceAll("\\s+","_")+"\n");
         }
     }
 

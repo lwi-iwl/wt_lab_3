@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?><students>
+	<Student>
+		<name>Daniil_Shishlo</name>
+		<averageScore>2</averageScore>
+	</Student>
+	<Student>
+		<name>Saroka</name>
+		<averageScore>9</averageScore>
+	</Student>
+<Student><name>Daniil_Shyshla</name><averageScore>1</averageScore></Student></students>

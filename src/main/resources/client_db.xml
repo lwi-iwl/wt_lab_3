@@ -2,6 +2,6 @@
 	<Client>
 		<name>Nik</name>
 		<password>6512</password>
-		<allowance>EDIT</allowance>
+		<allowance>ADD</allowance>
 	</Client>
-<Client><name>Niki</name><password>1265</password><allowance>EDIT</allowance></Client></clients>
+<Client><name>Niki</name><password>1265</password><allowance>EDIT</allowance></Client><Client><name>Daniil</name><password>1234</password><allowance>EDIT</allowance></Client><Client><name>Leha</name><password>4321</password><allowance>EDIT</allowance></Client><Client><name>New</name><password>New</password><allowance>READ</allowance></Client><Client><name>Newnew</name><password>Newnew</password><allowance>READ</allowance></Client></clients>

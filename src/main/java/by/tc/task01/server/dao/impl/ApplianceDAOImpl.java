@@ -1,8 +1,11 @@
 package by.tc.task01.server.dao.impl;
 
 import by.tc.task01.server.dao.ApplianceDAO;
+import by.tc.task01.server.entity.ClientFactory;
+import by.tc.task01.server.entity.ClientInfo;
+import by.tc.task01.server.entity.StudentFactory;
 import by.tc.task01.server.entity.StudentInfo;
-import by.tc.task01.server.entity.criteria.ClientCriteria;
+import by.tc.task01.server.entity.criteria.Criteria;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -20,35 +23,20 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 public class ApplianceDAOImpl implements ApplianceDAO{
 
-	@Override
-	public List<StudentInfo> find(ClientCriteria clientCriteria) throws FileNotFoundException {
-		String groupName = clientCriteria.getGroupSearchName();
-		File xmlFile = new File("src/main/resources/appliances_db.xml");
-		DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
-		DocumentBuilder builder;
-		try {
-			builder = factory.newDocumentBuilder();
-			Document document = builder.parse(xmlFile);
-			document.getDocumentElement().normalize();
-			NodeList nodeList = document.getElementsByTagName(groupName);
-			List<StudentInfo> students = new ArrayList<StudentInfo>();
-			return students;
-		} catch (Exception exc) {
-			exc.printStackTrace();
-		}
-		return null;
-	}
+	StudentFactory studentFactory = new StudentFactory();
+	ClientFactory clientFactory = new ClientFactory();
 	private static String getTagValue(String tag, Element element) {
 		NodeList nodeList = element.getElementsByTagName(tag).item(0).getChildNodes();
 		Node node = (Node) nodeList.item(0);
 		return node.getNodeValue();
 	}
 
-	public List<StudentInfo> getAll(){
-		File xmlFile = new File("src/main/resources/appliances_db.xml");
+	public List<StudentInfo> getAll(Criteria criteria, String path){
+		File xmlFile = new File("src/main/resources/students_db.xml");
 		DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
 		DocumentBuilder builder;
 		try {
@@ -58,7 +46,20 @@ public class ApplianceDAOImpl implements ApplianceDAO{
 			Node node = document.getDocumentElement();
 			List<StudentInfo> students = new ArrayList<StudentInfo>();
 			node = node.getChildNodes().item(1);
-
+			while (node!=null){
+				if (!node.getNodeName().equals("#text")) {
+					NodeList nodeList = node.getChildNodes();
+					ArrayList<String> parameters = new ArrayList<String>();
+					parameters.add(node.getNodeName());
+					for (int i = 0; i < nodeList.getLength(); i++) {
+						if (!nodeList.item(i).getNodeName().equals("#text")) {
+							parameters.add(getTagValue(nodeList.item(i).getNodeName(),(Element)node));
+						}
+					}
+					students.add(studentFactory.getStudent(parameters));
+				}
+				node = node.getNextSibling();
+			}
 			return students;
 		} catch (Exception exc) {
 			exc.printStackTrace();
@@ -66,22 +67,110 @@ public class ApplianceDAOImpl implements ApplianceDAO{
 		return null;
 	}
 
-	public void addClient(List<String[]> parameters) throws ParserConfigurationException, IOException, SAXException, TransformerException {
-		DocumentBuilder newDocumentBuilder = DocumentBuilderFactory.newInstance().newDocumentBuilder();
-		Document doc = newDocumentBuilder.parse("src/main/resources/client_db.xml");
-		Element clientElement = doc.createElement("Client");
-		Element root = doc.getDocumentElement();
-		for (String[] parameter: parameters){
-			System.out.println(parameter[0]);
-			Element element = doc.createElement(parameter[0]);
-			element.setTextContent(parameter[1]);
-			clientElement.appendChild(element);
-		}
-		root.appendChild(clientElement);
+	public boolean add(List<String[]> parameters, String path, String type) throws ParserConfigurationException, IOException, SAXException, TransformerException {
+		try {
+			DocumentBuilder newDocumentBuilder = DocumentBuilderFactory.newInstance().newDocumentBuilder();
+			Document doc = newDocumentBuilder.parse(path);
+			Element clientElement = doc.createElement(type);
+			Element root = doc.getDocumentElement();
+			for (String[] parameter : parameters) {
+				System.out.println(parameter[0]);
+				Element element = doc.createElement(parameter[0]);
+				element.setTextContent(parameter[1]);
+				clientElement.appendChild(element);
+			}
+			root.appendChild(clientElement);
 
-		Transformer transformer = TransformerFactory.newInstance().newTransformer();
-		Source source = new DOMSource(doc);
-		Result result = new StreamResult("src/main/resources/client_db.xml");
-		transformer.transform (source, result);
+			Transformer transformer = TransformerFactory.newInstance().newTransformer();
+			Source source = new DOMSource(doc);
+			Result result = new StreamResult(path);
+			transformer.transform(source, result);
+			return true;
+		}
+		catch (IOException e){
+			System.out.println(e.getMessage());
+		}
+		return false;
 	}
+
+	public boolean edit(String name, List<String[]> parameters, String path) {File xmlFile = new File(path);
+		DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+		DocumentBuilder builder;
+		try {
+			builder = factory.newDocumentBuilder();
+			Document document = builder.parse(xmlFile);
+			document.getDocumentElement().normalize();
+			Node node = document.getDocumentElement();
+			node = node.getChildNodes().item(1);
+			while (node!=null){
+				if (!node.getNodeName().equals("#text")) {
+					NodeList nodeList = node.getChildNodes();
+					if (nodeList.item(1).getTextContent().equals(name)) {
+						int k = 0;
+						for (int i = 0; i < nodeList.getLength(); i++) {
+							if (!nodeList.item(i).getNodeName().equals("#text")) {
+								nodeList.item(i).setTextContent(parameters.get(k)[1]);
+								k++;
+							}
+						}
+					}
+				}
+				node = node.getNextSibling();
+			}
+			Transformer transformer = TransformerFactory.newInstance().newTransformer();
+			Source source = new DOMSource(document);
+			Result result = new StreamResult(path);
+			transformer.transform (source, result);
+			return true;
+		} catch (Exception exc) {
+			exc.printStackTrace();
+		}
+		return false;
+	}
+
+	public List<ClientInfo> get(Criteria criteria, String path) {
+		File xmlFile = new File(path);
+		DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+		DocumentBuilder builder;
+		try {
+			builder = factory.newDocumentBuilder();
+			Document document = builder.parse(xmlFile);
+			document.getDocumentElement().normalize();
+			Node node = document.getDocumentElement();
+			List<ClientInfo> clients = new ArrayList<ClientInfo>();
+			node = node.getChildNodes().item(1);
+			while (node!=null){
+				if (!node.getNodeName().equals("#text")) {
+					NodeList nodeList = node.getChildNodes();
+					ArrayList<String> parameters = new ArrayList<String>();
+					ArrayList<String> parametersInfo = new ArrayList<>();
+					for (int i = 0; i < nodeList.getLength(); i++) {
+						if (!nodeList.item(i).getNodeName().equals("#text")) {
+							parameters.add(getTagValue(nodeList.item(i).getNodeName(),(Element)node));
+							parametersInfo.add(nodeList.item(i).getNodeName());
+						}
+					}
+					Set<String> applianceProperties = criteria.getCriteria().keySet();
+					boolean isCriteria = true;
+					for (String property : applianceProperties) {
+						int index = parametersInfo.indexOf(property);
+						System.out.println(criteria.getCriteria().get(property).toString());
+						System.out.println(parameters.get(index));
+						if ((index != -1) && (!criteria.getCriteria().get(property).toString().equals(parameters.get(index)))) {
+							isCriteria = false;
+						}
+						if (isCriteria){
+							clients.add(clientFactory.getClientInfo(parameters));
+						}
+					}
+				}
+				node = node.getNextSibling();
+			}
+			return clients;
+		} catch (Exception exc) {
+			exc.printStackTrace();
+		}
+		return null;
+	}
+
 }

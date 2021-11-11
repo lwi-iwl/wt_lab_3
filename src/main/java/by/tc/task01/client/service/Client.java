@@ -23,12 +23,12 @@ public class Client {
                 clientSocket.close();
                 in.close();
                 out.close();
-                return false;
             }
+            return false;
         } catch (IOException e) {
             System.err.println(e);
-            return false;
         }
+        return false;
 
     }
 
@@ -49,8 +49,9 @@ public class Client {
             return in.readLine();
         }
         catch (IOException e){
-            return "STOP";
+            System.out.println(e);
         }
+        return "STOP";
     }
 
     public void close() throws IOException {
